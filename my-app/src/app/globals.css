@@ -33,6 +33,13 @@ a {
   justify-content: space-between;
 }
 
+/* .innerContainer {
+  width: 80vw;
+  height: 90vh;
+  min-height: 100vh;
+  padding: 30px;
+} */
+
 @media (max-width: 1536px) {
   .container {
     width: 1366px;
@@ -72,6 +79,6 @@ a {
 
 @media (max-width: 475px) {
   .container {
-    width: 375px;
+    width: 380px;
   }
 }
