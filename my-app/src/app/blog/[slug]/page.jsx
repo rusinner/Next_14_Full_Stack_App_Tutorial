@@ -5,16 +5,27 @@ import { Suspense } from "react";
 import { getPost } from "@/lib/data";
 
 //FETCH DATA USING API
-// const getData = async (slug) => {
-//   const res = await fetch(
-//     `https://jsonplaceholder.typicode.com/posts/${slug}`,
-//     { cache: "no-store" }
-//   );
+const getData = async (slug) => {
+  const res = await fetch(`http://localhost:3000/api/blog/${slug}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error");
+  }
+  return res.json();
+};
+
+// const deleteData = async (slug) => {
+//   const res = await fetch(`http://localhost:3000/api/blog/${slug}`, {
+//     method: "DELETE",
+//   });
 
 //   if (!res.ok) {
 //     throw new Error("Error");
 //   }
 //   return res.json();
+// };
 
 export const generateMetadata = async ({ params }) => {
   const { slug } = params;
@@ -25,15 +36,14 @@ export const generateMetadata = async ({ params }) => {
     description: post.desc,
   };
 };
-// };
 
 const SinglePostPage = async ({ params }) => {
   const { slug } = params;
   //FETCH DATA USING API
-  // const post = await getData(slug);
+  const post = await getData(slug);
 
   //FETCH DATA WITHOUT USING API
-  const post = await getPost(slug);
+  // const post = await getPost(slug);
   return (
     <div className={styles.container}>
       {post.img && (
