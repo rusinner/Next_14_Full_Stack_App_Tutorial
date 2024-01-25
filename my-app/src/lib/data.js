@@ -39,7 +39,7 @@ export const getUser = async (id) => {
 export const getUsers = async () => {
   try {
     connectDB();
-    const users = await User.findOne();
+    const users = await User.find();
     return users;
   } catch (error) {
     console.log(error);

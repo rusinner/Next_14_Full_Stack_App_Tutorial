@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { signIn, signOut } from "./auth";
 import bcrypt from "bcrypt";
 
-export const addPost = async (formData) => {
+export const addPost = async (prevState, formData) => {
   //   "use server";
   const { title, desc, slug, userId } = Object.fromEntries(formData);
 
@@ -21,6 +21,7 @@ export const addPost = async (formData) => {
     await newPost.save();
     console.log("Saved to DB");
     revalidatePath("/blog");
+    revalidatePath("/admin");
   } catch (error) {
     console.log(error);
     return { error: "Something went wrong!" };
@@ -28,7 +29,7 @@ export const addPost = async (formData) => {
 };
 
 export const deletePost = async (formData) => {
-  //   "use server";
+  // "use server";
   const { id } = Object.fromEntries(formData);
 
   try {
@@ -37,6 +38,44 @@ export const deletePost = async (formData) => {
     await Post.findByIdAndDelete(id);
     console.log("Deleted from DB");
     revalidatePath("/blog");
+    revalidatePath("/admin");
+  } catch (error) {
+    console.log(error);
+    return { error: "Something went wrong!" };
+  }
+};
+
+export const addUser = async (prevState, formData) => {
+  //   "use server";
+  const { username, email, password, img } = Object.fromEntries(formData);
+
+  try {
+    connectDB();
+    const newUser = new User({
+      username,
+      email,
+      password,
+      img,
+    });
+    await newUser.save();
+    console.log("Saved to DB");
+    revalidatePath("/admin");
+  } catch (error) {
+    console.log(error);
+    return { error: "Something went wrong!" };
+  }
+};
+
+export const deleteUser = async (formData) => {
+  //   "use server";
+  const { id } = Object.fromEntries(formData);
+
+  try {
+    connectDB();
+    await Post.deleteMany({ userId: id });
+    await User.findByIdAndDelete(id);
+    console.log("Deleted from DB");
+    revalidatePath("/admin");
   } catch (error) {
     console.log(error);
     return { error: "Something went wrong!" };
@@ -50,14 +89,17 @@ export const handleGitHubLogin = async () => {
   await signIn("github");
 };
 
-export const login = async (formData) => {
+export const login = async (prevState, formData) => {
   const { username, password } = Object.fromEntries(formData);
 
   try {
     await signIn("credentials", { username, password });
   } catch (error) {
     console.log(error);
-    return { error: "Something went wrong!" };
+    if (error.message.includes("CredentialsSignin")) {
+      return { error: "Wrong username or password" };
+    }
+    throw error;
   }
 };
 
@@ -70,11 +112,11 @@ export const handleLogout = async () => {
 
 //REGISTER
 
-export const register = async (formData) => {
+export const register = async (previousState, formData) => {
   const { username, email, password, img, confirmPassword } =
     Object.fromEntries(formData);
   if (password !== confirmPassword) {
-    return "Passwords do not match!";
+    return { error: "Passwords do not match!" };
   }
 
   try {
@@ -82,7 +124,7 @@ export const register = async (formData) => {
     const user = await User.findOne({ username });
 
     if (user) {
-      return "User already exists";
+      return { error: "User already exists" };
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -96,7 +138,7 @@ export const register = async (formData) => {
     });
 
     await newUser.save();
-    console.log("saved");
+    return { success: true };
   } catch (error) {
     console.log(error);
     return { error: "Something went wrong!" };
